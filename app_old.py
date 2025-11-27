@@ -99,7 +99,7 @@ def main():
 
     st.sidebar.markdown("---")
     st.sidebar.write(f"当前样本 ID：`{dialog_id}`")
-    #st.sidebar.write(f"类型：`{dialog_type}`")
+    st.sidebar.write(f"类型：`{dialog_type}`")
 
     # 统计已完成数量
     labeled_count = 0
@@ -128,10 +128,10 @@ def main():
             with st.chat_message("assistant"):
                 st.markdown(content)
 
-    #gt = current.get("GT", "")
-    #if gt:
-    #    with st.expander("📌 参考 GT（可选，不必完全照抄）"):
-    #        st.markdown(gt)
+    gt = current.get("GT", "")
+    if gt:
+        with st.expander("📌 参考 GT（可选，不必完全照抄）"):
+            st.markdown(gt)
 
     st.markdown("### ✍️ 请老师给出下一轮用于引导学生的对话（下一句该怎么说？）")
 
