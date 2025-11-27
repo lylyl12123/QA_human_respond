@@ -83,18 +83,30 @@ def main():
         key=f"text_{dialog_id}",
     )
 
-    # ===== 导出单条 JSONL（含教师回复）=====
+        # ===== 导出单条 JSONL（含教师回复）=====
     record = dict(current)
     record["teacher_response"] = (teacher_response or "").strip()
     jsonl_str = json.dumps(record, ensure_ascii=False)
 
     st.sidebar.markdown("### 💾 导出当前样本")
-    st.sidebar.download_button(
+
+    # 计算字数（这里用字符数）
+    reply_len = len(record["teacher_response"])
+
+    # download_button 会在点击时返回 True
+    downloaded = st.sidebar.download_button(
         label="⬇ 下载当前样本 JSONL（含回复）",
         data=jsonl_str.encode("utf-8"),
         file_name=f"{dialog_id}.jsonl",
         mime="application/jsonl",
+        key=f"download_{dialog_id}",   # 建议加个 key，防止冲突
     )
+
+    # 如果刚刚点击了下载按钮，就弹出提示
+    if downloaded:
+        # 或者用 toast 出现在右上角（更明显）
+        st.toast(f"已保存！当前保存教师回复共 {reply_len} 个字。")
+
 
 
 if __name__ == "__main__":
