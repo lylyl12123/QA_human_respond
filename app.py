@@ -17,9 +17,8 @@ def load_data():
 
 
 def main():
-    # ===== 页面设置（尽量最先调用） =====
+    # ===== 页面设置 =====
     st.set_page_config(page_title="教师答疑数据采集标注", layout="wide")
-
     st.title("📚 教师答疑数据采集界面")
     st.write("在该界面中，需要您作为一位擅长苏格拉底式答疑的老师。阅读下面的对话历史，对学生进行引导式解答：")
     st.write("  - 不要直接给出答案或完整解题步骤，而是通过提问引导学生进一步思考。")
@@ -71,49 +70,30 @@ def main():
     for m in current.get("messages", []):
         role = m.get("role", "user")
         content = m.get("content", "")
-        # 保证 role 合法：Streamlit chat_message 只官方支持 "user"/"assistant"/"system"
-        if role not in ["user", "assistant", "system"]:
-            role = "user"
         with st.chat_message(role):
             st.markdown(content)
 
     # ===== 教师填写回复 =====
     st.markdown("### ✍️ 请老师给出下一轮用于引导学生的对话")
 
-    teacher_key = f"text_{dialog_id}"
-
     teacher_response = st.text_area(
         "教师回复内容：",
-        value=st.session_state.get(teacher_key, ""),   # 用 session_state 保持输入
+        value="",
         height=200,
-        key=teacher_key,
+        key=f"text_{dialog_id}",
     )
 
-    # 同步最新文本到 session_state（显式一点）
-    st.session_state[teacher_key] = teacher_response
-
-    # ===== 构建导出内容，并放到 session_state 里 =====
+    # ===== 导出单条 JSONL（含教师回复）=====
     record = dict(current)
     record["teacher_response"] = (teacher_response or "").strip()
-    jsonl_str = json.dumps(record, ensure_ascii=False) + "\n"
-    jsonl_bytes = jsonl_str.encode("utf-8")
-
-    st.session_state["export_bytes"] = jsonl_bytes
-    st.session_state["export_filename"] = f"{dialog_id}.jsonl"
+    jsonl_str = json.dumps(record, ensure_ascii=False)
 
     st.sidebar.markdown("### 💾 导出当前样本")
-
-    # 增加一个小提示，方便你确认当前内容有没有生成
-    with st.sidebar.expander("调试信息（可随时关掉）"):
-        st.write("当前回复长度：", len(teacher_response or ""))
-        #st.write("导出字节大小：", len(jsonl_bytes))
-
     st.sidebar.download_button(
         label="⬇ 下载当前样本 JSONL（含回复）",
-        data=st.session_state["export_bytes"],
-        file_name=st.session_state["export_filename"],
-        mime="application/json",
-        key=f"download_{dialog_id}",   # 给定稳定 key，避免重跑时混乱
+        data=jsonl_str.encode("utf-8"),
+        file_name=f"{dialog_id}.jsonl",
+        mime="application/jsonl",
     )
 
 
